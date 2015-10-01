@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <string.h>
 
+
+//Function to
 void print_line(FILE *fp, int no_of_lines)
 {
     char a, line=0;
@@ -61,7 +63,7 @@ void copy_line(FILE *f1, FILE *f2, int no_of_lines)
     
     while ((a = getc(f1))!=EOF)
     {
-        printf("%c", a);
+        //printf("%c", a);
         putc(a, f2);
         
         if (a =='\n')
@@ -102,19 +104,22 @@ int copy_file(FILE *f1, FILE *f2)
 
 int more_command(FILE *f1)
 {
-    char a, User_Input;
+    char a, User_Input = '\0';
     if (!f1)
     {
         printf("FILE NOT FOUND");
         return 1;
     }
     
+    print_line(f1,10);
+    
     while(((a=getc(f1))!=EOF))
     {
-        printf("Press n\\p\\q : ");
+        
+        printf("Press n\\p\\q :");
         fseek(f1, -1, SEEK_CUR);
         
-        scanf("%c", &User_Input);
+        scanf(" %c", &User_Input);
         
         if (User_Input == 'n')
         {
@@ -146,12 +151,27 @@ int more_command(FILE *f1)
 void interleave(FILE *f1, FILE *f2, FILE *f3)
 {
     char a,b='\0';
+    int end_flag_a=1,end_flag_b=1;
     
     do
     {
          a=getc(f1);
          b=getc(f2);
 
+        if ((a == EOF) &&( end_flag_a = 1))
+        {
+            fputc('\n', f3);
+            end_flag_a = 0;
+        }
+        
+        
+        if ((b == EOF) &&( end_flag_b = 1))
+        {
+            fputc('\n', f3);
+            end_flag_b = 0;
+        }
+        
+        
         if (a != EOF)
         {
             fseek(f1, -1, SEEK_CUR);
@@ -164,9 +184,11 @@ void interleave(FILE *f1, FILE *f2, FILE *f3)
             copy_line(f2, f3, 1);
         }
         
+        
     }while ((a!= EOF) || (b!= EOF));
     
     printf("\n");
+    printf("Interleave Copy Made !\n");
     rewind(f1);
     rewind(f2);
     rewind(f3);
@@ -195,7 +217,7 @@ void grep(FILE *f1)
     {
         printf("NO MATCH FOUND\n");
     }
-    printf("Search Complete\n");
+    printf("\nSearch Complete\n");
     rewind(f1);
 
 }
@@ -226,20 +248,25 @@ int count_char_in_line(FILE *fp, int line_num)
 int count_words_in_line(FILE *fp, int line_num)
 {
     char c;
-    int line_cnt=0,word_cnt=1,sp_char_cnt=0;
+    int line_cnt=0,word_cnt=0,sp_char_cnt=0;
+    int word_char_cnt=0;
     
     while ((c= getc(fp))!=EOF)
     {
-        if (!((c==',')||(c=='\n')||((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c<='z')) || ((c >= '0') && (c<='9'))))
+        
+        if ((((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c<='z')) || ((c >= '0') && (c<='9'))))
         {
-            sp_char_cnt++;
-            if (sp_char_cnt == 1)
-            {
-                sp_char_cnt =0;
-                word_cnt++;
-               // printf("\n%d", word_cnt);
-            }
+            word_char_cnt++;
         }
+        else
+        {
+            if(word_char_cnt != 0)
+            {
+                word_cnt++;
+            }
+            word_char_cnt = 0;
+        }
+        
         
         if (c=='\n')
         {
@@ -353,8 +380,8 @@ void longest_3_words(FILE *fp)
 void file_details(FILE *fp)
 {
     char c;
-    int sp_char_cnt=0,a;
-    int char_cnt=1, word_cnt=1, line_cnt=1;
+    int a, word_char_cnt=0;
+    int char_cnt=1, word_cnt=0, line_cnt=1;
     
     while ((c= getc(fp))!=EOF)
     {
@@ -364,19 +391,23 @@ void file_details(FILE *fp)
             line_cnt++;
         }
         
-        if (!((c=='\n')||((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c<='z')) || ((c >= '0') && (c<='9'))))
+        if ((((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c<='z')) || ((c >= '0') && (c<='9'))))
         {
-            sp_char_cnt++;
-            if (sp_char_cnt == 1)
+            word_char_cnt++;
+        }
+        else
+        {
+            if(word_char_cnt != 0)
             {
-                sp_char_cnt =0;
                 word_cnt++;
             }
+            word_char_cnt = 0;
         }
+        
     }
     rewind(fp);
     
-    printf("\nChar Count is : %d", char_cnt+1);
+    printf("\nChar Count is : %d", char_cnt);
     printf("\nWord Count is : %d", word_cnt+1);
     printf("\nLine Count is : %d\n", line_cnt);
     printf("The shortest line by char :  ");
@@ -394,8 +425,6 @@ int main(int argc, const char * argv[])
     FILE *f1, *f2, *f3;
     
     const char *op = argv[1];
-    
-    printf("Hello, Welcome to Linux File Command Executor\n");
     
     //switch case
     switch (*op)
